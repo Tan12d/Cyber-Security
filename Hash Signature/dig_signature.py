@@ -1,0 +1,39 @@
+from Crypto.Signature import pkcs1_15
+from Crypto.Hash import SHA256
+from Crypto.PublicKey import RSA
+
+def generate_key_pair():
+    key = RSA.generate(2048)
+    private_key = key.export_key()
+    public_key = key.publickey().export_key()
+    return private_key, public_key
+
+def sign_data(private_key, data):
+    key = RSA.import_key(private_key)
+    h = SHA256.new(data)
+    signature = pkcs1_15.new(key).sign(h)
+    return signature
+
+def verify_signature(public_key, data, signature):
+    key = RSA.import_key(public_key)
+    h = SHA256.new(data)
+    try:
+        pkcs1_15.new(key).verify(h, signature)
+        print("Signature is valid.")
+        return True
+    except (ValueError, TypeError):
+        print("Signature verification failed.")
+        return False
+
+if __name__ == "__main__":
+    # Generate key pair
+    private_key, public_key = generate_key_pair()
+
+    # Some data to sign
+    data_to_sign = b"Hello, this is some data to sign."
+
+    # Sign the data
+    signature = sign_data(private_key, data_to_sign)
+
+    # Verify the signature
+    verify_signature(public_key, data_to_sign, signature)
